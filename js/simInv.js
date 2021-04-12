@@ -7,7 +7,8 @@
  ** 0.1 - 31 march 2021 Create logic for placing orders and initial conditions
  ** 0.2 - 02 april 2021 Change logic to days instead of weeks for easier understanding of 
  ** orders within time period + Initial html setup with button for placing orders
-*/
+ ** 0.3 - 11 april 2021 Modify behaviour to allow only a valid number to be entered
+ */
 
 // Define conditions
 let day = 0; // Starting period of simulation
@@ -23,17 +24,25 @@ const arrival0 = {  dayOfOrderQ: 0,
                     arrivalSpan:0, 
                     dayOfArrival: 0 }; // Initial arrival (t = 0)
 const arrival0val = 0
-let msj = ""
-let msj2 = ""
+let msj = "";
+let msj2 = "";
+let hCostPerUnitDay = 10;
+let hCost = 0;
+let bCostPerUnitDay = 20;
+let bCost = 0;
+let orderingCostPerOrder = 250;
+let orderingCost = 0;
+let tCost = 0;
 
 // Create the demands for clients on current session 
 function generateDemands(numDays, demand0){
     let dailyDemand = []; // Array of random demands
-    for(let i = 0; i < numDays; i++){
+    for(let i = 1; i <= numDays; i++){
         // test random generator from 10 to 15
-        dailyDemand.push(
-            Math.floor(Math.random() * (1 - 10 + 15)) + 10
-            );
+        let demandForDay = Math.floor(Math.random() * (1 - 10 + 15)) + 10 
+        // Add logic to increase demands on weekends
+        // PENDING
+        dailyDemand.push(demandForDay);
             // add normal random distribution to certain ranges in array
             // reproducible example
         };
@@ -74,71 +83,86 @@ let jsonAllData = []
 // let order = 9; // Ordered quantity for day
 // let arrivalSpan = 2; // Time it takes for the order (Q) to arrive
 function placeOrder(order,arrivalSpan){
-    day += 1;
-
-    // Update orders
-    let msj2A = `An order of ${order} boats was placed in day ${day}.`
-    console.log(msj2A)
-    ordersArr.push(order);
-
-    // Update arrivals arrivalsObjArr y arrivalsArr
-    let msj2B = `Your order will arrive in ${arrivalSpan} day(s) to use in day ${day+arrivalSpan}`
-    console.log(msj2B)
-    arrivalsArr[day+arrivalSpan]+=order
-    let arrivalObj = { dayOfOrderQ: day,
-        orderQ: order, 
-        arrivalSpan: arrivalSpan, 
-        dayOfArrival: day+arrivalSpan };
-    arrivalsObjArr.push(arrivalObj);
-
-    msj2 = msj2A + "<br>" + msj2B + "<hr>"
-
-    // update days and demands for graph
-    daysArray.push(day)
-    demandsArrGr.push(demandsArr[day]);
-    document.getElementById("myChart").remove(); //canvas
-    let div = document.querySelector("#chartReport"); //canvas parent element
-    div.insertAdjacentHTML("afterbegin", "<canvas id='myChart'></canvas>"); //adding the canvas again
-    updateDemGraph();
-
-    // Verify if there is enough inventory
-    let availableInvForDay = onHandInventory[day-1] + arrivalsArr[day]
-    let requiredDemandForDay = demandsArr[day] + backordersArr[day-1]
-    if(availableInvForDay < requiredDemandForDay){
-        msj = "Bad news <br> Not enough inventory for day: " + day + " :( <hr>"
-        console.log(msj);
-        // Update inventories
-        onHandInventory.push(0);
-        // Update backorders
-        let backorderDay = requiredDemandForDay-availableInvForDay;
-        backordersArr.push(backorderDay);
-
-    } else if (availableInvForDay >= requiredDemandForDay){
-        msj = "Good job! <br> There was enough inventory for day " + day + " ;) <hr>"
-        console.log(msj);
-        // Update inventories
-        let inventoryDay = availableInvForDay-requiredDemandForDay;
-        onHandInventory.push(inventoryDay);
-        // Update backorders
-        backordersArr.push(0);  
-
+    // Evalúa si el dato es válido para continuar con el ejercicio
+    if (day === numDays){
+        console.log("End of simulation")
+        updateDomElements(msj="&#x1F60E You have reached the end of the simulation! <hr>",msj2="");
+    } else if (isNaN(order) || order < 0 || order > 99) {
+        console.log("Input is not valid")
+        updateDomElements(msj=" &#x26D4 Please enter a valid number of boats to order (0-99) <hr>",msj2="");
     } else {
-        msj = "Ups, something went wrong with your order"
-        console.log(msj);
-    };
-    
-    // Create table for displaying results
-    jsonAllData.push({
-        day: day,
-        demand: demandsArr[day],
-        inventory: onHandInventory[day],
-        backorders: backordersArr[day],
-        arrivals: arrivalsArr[day]        
-    })
-    updateDataTable()
+        day += 1;
 
-    displayResults();
-    updateDomElements(msj,msj2);
+        // Update orders
+        let msj2A = `${order} boats ordered in day: ${day}.`
+        console.log(msj2A)
+        ordersArr.push(order);
+
+        // Update arrivals arrivalsObjArr, arrivalsArr y orderingCost
+        let msj2B = ""
+        if(order>0){
+            msj2B = `Your order will arrive in ${arrivalSpan} day(s) <br> (Available to use in day ${day+arrivalSpan})`
+            orderingCost += orderingCostPerOrder
+        } 
+        
+        console.log(msj2B)
+        arrivalsArr[day+arrivalSpan]+=order
+        let arrivalObj = { dayOfOrderQ: day,
+            orderQ: order, 
+            arrivalSpan: arrivalSpan, 
+            dayOfArrival: day+arrivalSpan };
+        arrivalsObjArr.push(arrivalObj);
+
+        msj2 = msj2A + "<br>" + msj2B + "<hr>"
+
+        // update days and demands for graph
+        daysArray.push(day)
+        demandsArrGr.push(demandsArr[day]);
+        document.getElementById("myChart").remove(); //canvas
+        let div = document.querySelector("#chartReport"); //canvas parent element
+        div.insertAdjacentHTML("afterbegin", "<canvas id='myChart'></canvas>"); //adding the canvas again
+        updateDemGraph();
+
+        // Verify if there is enough inventory
+        let availableInvForDay = onHandInventory[day-1] + arrivalsArr[day]
+        let requiredDemandForDay = demandsArr[day] + backordersArr[day-1]
+        if(availableInvForDay < requiredDemandForDay){
+            msj = "&#x1f615 Bad news <br> Not enough inventory for day: " + day + " <hr>"
+            console.log(msj);
+            // Update inventories
+            onHandInventory.push(0);
+            // Update backorders
+            let backorderDay = requiredDemandForDay-availableInvForDay;
+            backordersArr.push(backorderDay);
+            bCost += backorderDay * bCostPerUnitDay
+
+        } else if (availableInvForDay >= requiredDemandForDay){
+            msj = "&#x1F609 Good job! <br> Enough inventory for day " + day + "<hr>"
+            console.log(msj);
+            // Update inventories and cost
+            let inventoryDay = availableInvForDay-requiredDemandForDay;
+            onHandInventory.push(inventoryDay);
+            hCost += inventoryDay * hCostPerUnitDay
+            // Update backorders
+            backordersArr.push(0);  
+
+        } else {
+            msj = "&#x1F630 Ups, something went wrong with your order"
+            console.log(msj);
+        };
+        
+        // Create table for displaying results
+        jsonAllData.push({
+            day: day,
+            demand: demandsArr[day],
+            inventory: onHandInventory[day],
+            backorders: backordersArr[day],
+            arrivals: arrivalsArr[day]        
+        })
+        updateDataTable();
+        displayResults();
+        updateDomElements(msj,msj2);
+    }
     return false;
 };
 
@@ -175,8 +199,23 @@ function updateDomElements(msj,msj2){
     let arrivalsBox = document.getElementById("arrivalsBox")
     arrivalsBox.innerHTML = `${msj2}`
 
-    
+    // Costs mesaje
+    // Holding
+    let holdingCostBox = document.getElementById("holdingCostBox")
+    holdingCostBox.innerHTML = `$ ${hCost}`
+    // Backorder
+    let backorderCostBox = document.getElementById("backorderCostBox")
+    backorderCostBox.innerHTML = `$ ${bCost}`
+    // Ordering
+    let orderingCostBox = document.getElementById("orderingCostBox")
+    orderingCostBox.innerHTML = `$ ${orderingCost}`
+    // Total
+    let totalCostBox = document.getElementById("totalCostBox")
+    tCost = hCost + bCost + orderingCost
+    totalCostBox.innerHTML = `$ ${tCost}` 
 }
+updateDomElements(msj="&#x1F446 Please order something to start <hr>",msj2="");
+
 // Testing
 function displayResults(){
     console.log("--- --- ---");
@@ -189,19 +228,23 @@ function displayResults(){
     console.log("Arrivals: "+arrivalsArr);
     console.log("Arrivals OBJ:...");
     console.log( arrivalsObjArr);
+    console.log("Current Holding Cost: $",hCost);
+    console.log("Current Backorder Cost: $",bCost);
+    console.log("Current Ordering Cost: $",orderingCost);
 }
 displayResults();
-updateDomElements(msj="Please order something to start <hr>",msj2="");
 
 // React to user actions
 function placeOrderDOM(){
-    let orderInput = parseInt(document.getElementById("orderInput").value);
+    let orderInput = parseInt(document.getElementById("orderInput").value,10);
     let orderTimeSpan = Math.floor(Math.random() * (1 - 1 + 3)) + 1
+
     placeOrder(orderInput,orderTimeSpan)
     // Update button status
     let placeOrderButton = document.getElementById("placeOrder")
     placeOrderButton.blur()
 }
+document.getElementById("placeOrder").addEventListener("click",placeOrderDOM)
 
 // Draw inventory
 function updateDemGraph(){
@@ -228,7 +271,7 @@ function updateDemGraph(){
 
 updateDemGraph()
 
-// Draw chart
+// Draw table
 const grid = new gridjs.Grid({
     columns:["day", "demand","inventory","backorders","Arrivals"],
     data:jsonAllData
@@ -238,5 +281,6 @@ function updateDataTable(){
     grid.updateConfig({
         data: jsonAllData
     }).forceRender()
+   console.log("Updating table...")
 }
 updateDataTable()

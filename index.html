@@ -22,7 +22,7 @@
     </nav>    
     
     <div class="container-md"> <!-- Main container-->
-        <div class="row "> <!-- Main row-->
+        <div class="row"> <!-- Main row-->
             
             <!-- Graph -->
             <div class="col-md-8 ">
@@ -37,24 +37,29 @@
 
                 </div>
                 
-                
                 <div class="card-group mx-1">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Holding</h5>
-                            <p class="card-text">$</p>
+                        <strong><p class="card-text" id="holdingCostBox">$</p></strong>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Backorder</h5>
-                            <p class="card-text">$</p>
+                            <strong><p class="card-text" id="backorderCostBox">$</p></strong>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Ordering</h5>
-                            <p class="card-text">$</p>
+                            <strong><p class="card-text" id="orderingCostBox">$</p></strong>
+                        </div>
+                    </div>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">Total</h5>
+                            <strong><p class="card-text" id="totalCostBox">$</p></strong>
                         </div>
                     </div>
                 </div>
@@ -80,7 +85,7 @@
                                     placeholder="Amount to order this day" requiered minlength="1" 
                                     maxlength="2" size="2" autofocus>
                                 </div>  
-                                <button id="placeOrder" type="" class="btn btn-warning w-100" onclick="placeOrderDOM()">Place order...</button>                          
+                                <button id="placeOrder" type="" class="btn btn-warning w-100">Place order...</button>                          
                             
                             </p>
                         </div>
@@ -100,8 +105,8 @@
                 </div>
             </div> <!--Info sidebar-->
         </div> <!--Main Row-->
-        <hr>
-<div id="wrapper"></div>
+        
+<div id="wrapper" style="display: none;"></div>
 
     </div> <!--Main container-->
 
@@ -112,8 +117,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.1/dist/chart.min.js"></script>
     <!--gridjs-->
     <script src="https://cdn.jsdelivr.net/npm/gridjs/dist/gridjs.production.min.js"></script>
-
-
 </body>
 </html>
 
