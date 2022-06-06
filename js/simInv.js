@@ -8,6 +8,7 @@
  ** 0.2 - 02 april 2021 Change logic to days instead of weeks for easier understanding of 
  ** orders within time period + Initial html setup with button for placing orders
  ** 0.3 - 11 april 2021 Modify behaviour to allow only a valid number to be entered
+ ** 0.4 TBD Implement hide/show data table (https://twitter.com/Te_Challa/status/1526743428876275713?t=tbVC-_dxIx60P3E__afloA&s=03)
  */
 
 // Define conditions
